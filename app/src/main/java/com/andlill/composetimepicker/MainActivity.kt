@@ -35,7 +35,12 @@ class MainActivity : ComponentActivity() {
                                 Button(onClick = { dialogState.value = true }) {
                                     Text("Pick a time")
                                 }
-                                TimePickerDialog(state = dialogState)
+                                TimePickerDialog(
+                                    state = dialogState,
+                                    onSelectTime = {
+                                        time.value = it
+                                    }
+                                )
                             }
                         }
                     }
