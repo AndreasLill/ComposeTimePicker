@@ -24,16 +24,16 @@ import java.util.*
 fun TimePickerDialog(
     state: MutableState<Boolean>,
     initialTime: LocalTime = LocalTime.now(),
-    is24h: Boolean = true,
+    is24h: Boolean = false,
     onSelectTime: (LocalTime) -> Unit
 ) {
     if (state.value) {
 
         val config = LocalConfiguration.current
         val timeSelected = rememberSaveable { mutableStateOf(initialTime) }
-        val hourSelected = rememberSaveable { mutableStateOf(true) }
         val clockDial = rememberSaveable { mutableStateOf(true) }
         val timePeriod = rememberSaveable { mutableStateOf(TimePeriod.AM) }
+        val timeUnit = rememberSaveable { mutableStateOf(TimeUnit.Hour) }
 
         Dialog(
             onDismissRequest = { state.value = false },
@@ -48,8 +48,8 @@ fun TimePickerDialog(
                     if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
                         TimePickerLayoutVertical(
                             timeSelected = timeSelected,
-                            hourSelected = hourSelected,
                             clockDial = clockDial,
+                            timeUnit = timeUnit,
                             timePeriod = timePeriod,
                             is24h = is24h,
                             onNegativeClick = {
@@ -83,8 +83,8 @@ fun TimePickerDialog(
 @Composable
 internal fun TimePickerLayoutVertical(
     timeSelected: MutableState<LocalTime>,
-    hourSelected: MutableState<Boolean>,
     clockDial: MutableState<Boolean>,
+    timeUnit: MutableState<TimeUnit>,
     timePeriod: MutableState<TimePeriod>,
     is24h: Boolean,
     onNegativeClick: () -> Unit,
@@ -98,13 +98,13 @@ internal fun TimePickerLayoutVertical(
                     .height(80.dp),
                 value = timeSelected.value.toString("HH", Locale.getDefault()),
                 readOnly = clockDial.value,
-                selected = hourSelected.value,
+                selected = timeUnit.value == TimeUnit.Hour,
                 imeAction = ImeAction.Next,
                 onValueChange = {
 
                 },
                 onSelect = {
-                    hourSelected.value = true
+                    timeUnit.value = TimeUnit.Hour
                 }
             )
             Text(
@@ -120,13 +120,13 @@ internal fun TimePickerLayoutVertical(
                     .height(80.dp),
                 value = timeSelected.value.toString("mm", Locale.getDefault()),
                 readOnly = clockDial.value,
-                selected = !hourSelected.value,
+                selected = timeUnit.value == TimeUnit.Minute,
                 imeAction = ImeAction.Done,
                 onValueChange = {
 
                 },
                 onSelect = {
-                    hourSelected.value = false
+                    timeUnit.value = TimeUnit.Minute
                 }
             )
             if (!is24h) {
@@ -146,7 +146,13 @@ internal fun TimePickerLayoutVertical(
         if (clockDial.value) {
             Spacer(modifier = Modifier.height(16.dp))
             TimePickerClockDial(
-
+                timeSelected = timeSelected.value,
+                timeUnit = timeUnit.value,
+                is24h = is24h,
+                onSelectTime = {
+                    // TODO: convert 12h to 24h
+                    timeSelected.value = it
+                }
             )
         }
         Spacer(modifier = Modifier.height(16.dp))

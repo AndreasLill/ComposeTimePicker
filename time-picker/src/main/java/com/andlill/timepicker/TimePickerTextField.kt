@@ -36,7 +36,7 @@ internal fun TimePickerTextField(
     onSelect: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
-    var textFieldValue by remember { mutableStateOf(value) }
+    var textFieldValue by remember(value) { mutableStateOf(value) }
     var isFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(isFocused) {
