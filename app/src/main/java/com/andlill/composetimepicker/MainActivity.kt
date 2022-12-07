@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 TimePickerDialog(
                                     state = dialogState,
+                                    initialTime = time.value,
                                     onSelectTime = {
                                         time.value = it
                                     }

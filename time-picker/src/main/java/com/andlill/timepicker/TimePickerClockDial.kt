@@ -16,7 +16,8 @@ internal fun TimePickerClockDial(
     timeSelected: LocalTime,
     timeUnit: TimeUnit,
     is24h: Boolean,
-    onSelectTime: (LocalTime) -> Unit
+    onSelectTime: (LocalTime) -> Unit,
+    onChangeTimeUnit: (TimeUnit) -> Unit
 ) {
     Surface(
         modifier = Modifier.size(256.dp),
@@ -31,7 +32,8 @@ internal fun TimePickerClockDial(
                     selectionColor = MaterialTheme.colorScheme.primary,
                     selectionTextColor = MaterialTheme.colorScheme.onPrimary,
                     textColor = MaterialTheme.colorScheme.onSurface,
-                    onSelectTime = onSelectTime
+                    onSelectTime = onSelectTime,
+                    onChangeTimeUnit = onChangeTimeUnit
                 )
             }
         }

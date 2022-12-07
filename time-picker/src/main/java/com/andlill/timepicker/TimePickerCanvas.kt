@@ -27,105 +27,213 @@ internal fun TimePickerCanvas(
     selectionColor: Color,
     selectionTextColor: Color,
     textColor: Color,
-    onSelectTime: (LocalTime) -> Unit
+    onSelectTime: (LocalTime) -> Unit,
+    onChangeTimeUnit: (TimeUnit) -> Unit
 ) {
     val hours = remember { mutableListOf<TimeOffset>() }
-    var selected by remember { mutableStateOf(TimeOffset.Unspecified) }
+    val minutes = remember { mutableListOf<TimeOffset>() }
+    var selected by remember(timeUnit) { mutableStateOf(TimeOffset.Unspecified) }
     val textMeasurer = rememberTextMeasurer()
 
     Canvas(
         modifier = Modifier
             .size(256.dp)
-            .pointerInput(Unit) {
+            .pointerInput(timeUnit) {
                 detectDragGestures(
                     onDrag = { change, _ ->
                         change.consume()
-                        selected = hours.sortedBy { hour ->
-                            (change.position.x - hour.offset.x).pow(2) + (change.position.y - hour.offset.y).pow(2)
-                        }.first()
-                        onSelectTime(timeSelected.withHour(selected.time.hour))
+                        if (timeUnit == TimeUnit.Hour) {
+                            selected = hours
+                                .sortedBy { hour ->
+                                    (change.position.x - hour.offset.x).pow(2) + (change.position.y - hour.offset.y).pow(
+                                        2
+                                    )
+                                }
+                                .first()
+                            onSelectTime(timeSelected.withHour(selected.time.hour))
+                        } else {
+                            selected = minutes
+                                .sortedBy { minute ->
+                                    (change.position.x - minute.offset.x).pow(2) + (change.position.y - minute.offset.y).pow(
+                                        2
+                                    )
+                                }
+                                .first()
+                            onSelectTime(timeSelected.withMinute(selected.time.minute))
+                        }
                     },
                     onDragEnd = {
-                        // TODO: move to minutes
+                        if (timeUnit == TimeUnit.Hour) {
+                            // TODO: Add animations.
+                            onChangeTimeUnit(TimeUnit.Minute)
+                        }
                     }
                 )
             }
-            .pointerInput(Unit) {
+            .pointerInput(timeUnit) {
                 detectTapGestures { press ->
                     // Get the closest position to the press.
-                    selected = hours.sortedBy { hour ->
-                        (press.x - hour.offset.x).pow(2) + (press.y - hour.offset.y).pow(2)
-                    }.first()
-                    onSelectTime(timeSelected.withHour(selected.time.hour))
-                    // TODO: move to minutes
+                    if (timeUnit == TimeUnit.Hour) {
+                        selected = hours
+                            .sortedBy { hour ->
+                                (press.x - hour.offset.x).pow(2) + (press.y - hour.offset.y).pow(2)
+                            }
+                            .first()
+                        onSelectTime(timeSelected.withHour(selected.time.hour))
+                        // TODO: Add animations.
+                        onChangeTimeUnit(TimeUnit.Minute)
+                    } else {
+                        selected = minutes
+                            .sortedBy { minute ->
+                                (press.x - minute.offset.x).pow(2) + (press.y - minute.offset.y).pow(
+                                    2
+                                )
+                            }
+                            .first()
+                        onSelectTime(timeSelected.withMinute(selected.time.minute))
+                    }
                 }
             },
         onDraw = {
             val padding = 4.dp.toPx()
-            val drawRadius = 22.dp.toPx()
-            val clockRadius = size.height / 2
+            val selectedRadius = 22.dp.toPx()
 
             if (hours.isEmpty()) {
-                if (is24h) {
-                    (0..23).forEach { hour ->
-                        hours.add(
-                            TimeOffset(
-                                time = LocalTime.of(hour, 0),
-                                offset = Offset(
-                                    x = size.width / 2 + cos((hour-6) * 360/24 * PI /180).toFloat() * (clockRadius - drawRadius - padding),
-                                    y = size.height / 2 + sin((hour-6) * 360/24 * PI /180).toFloat() * (clockRadius - drawRadius - padding)
-                                )
-                            )
-                        )
+                addHours(
+                    list = hours,
+                    is24h = is24h,
+                    canvasWidth = size.width,
+                    canvasHeight = size.height,
+                    selectedRadius = selectedRadius,
+                    padding = padding
+                )
+            }
+            if (minutes.isEmpty()) {
+                addMinutes(
+                    list = minutes,
+                    canvasWidth = size.width,
+                    canvasHeight = size.height,
+                    selectedRadius = selectedRadius,
+                    padding = padding
+                )
+            }
+            if (selected == TimeOffset.Unspecified) {
+                if (timeUnit == TimeUnit.Hour) {
+                    hours.find { it.time.hour == timeSelected.hour }?.let {
+                        selected = it
                     }
                 }
                 else {
-                    (0..11).forEach { hour ->
-                        hours.add(
-                            TimeOffset(
-                                time = LocalTime.of(hour, 0),
-                                offset = Offset(
-                                    x = size.width / 2 + cos((hour-3) * 360/12 * PI /180).toFloat() * (clockRadius - drawRadius - padding),
-                                    y = size.height / 2 + sin((hour-3) * 360/12 * PI /180).toFloat() * (clockRadius - drawRadius - padding)
-                                )
-                            )
-                        )
+                    minutes.find { it.time.minute == timeSelected.minute }?.let {
+                        selected = it
                     }
-                }
-            }
-
-            if (selected == TimeOffset.Unspecified) {
-                hours.find { it.time.hour == timeSelected.hour }?.let {
-                    selected = it
                 }
             }
 
             drawCircle(
                 color = selectionColor,
-                radius = drawRadius,
+                radius = selectedRadius,
                 center = selected.offset
             )
 
-            hours.forEachIndexed { index, timeOffset ->
-                val str = "$index"
-                val textSize = textMeasurer.measure(text = AnnotatedString(str))
-                val draw = (is24h && index % 2 == 0) || (!is24h)
-
-                if (draw) {
-                    drawText(
-                        textMeasurer = textMeasurer,
-                        text = str,
-                        style = TextStyle(
-                            color = if (timeOffset == selected) selectionTextColor else textColor,
-                            fontSize = 14.sp
-                        ),
-                        topLeft = Offset(
-                            x = timeOffset.offset.x - (textSize.size.width / 2),
-                            y = timeOffset.offset.y - (textSize.size.height / 2)
+            if (timeUnit == TimeUnit.Hour) {
+                hours.forEachIndexed { index, timeOffset ->
+                    val str = "$index"
+                    val textSize = textMeasurer.measure(text = AnnotatedString(str))
+                    if ((is24h && index % 2 == 0) || !is24h) {
+                        drawText(
+                            textMeasurer = textMeasurer,
+                            text = str,
+                            style = TextStyle(
+                                color = if (timeOffset == selected) selectionTextColor else textColor,
+                                fontSize = 14.sp
+                            ),
+                            topLeft = Offset(
+                                x = timeOffset.offset.x - (textSize.size.width / 2),
+                                y = timeOffset.offset.y - (textSize.size.height / 2)
+                            )
                         )
-                    )
+                    }
+                }
+            }
+            else {
+                minutes.forEachIndexed { index, timeOffset ->
+                    val str = "$index"
+                    val textSize = textMeasurer.measure(text = AnnotatedString(str))
+                    if (index % 5 == 0) {
+                        drawText(
+                            textMeasurer = textMeasurer,
+                            text = str,
+                            style = TextStyle(
+                                color = if (timeOffset == selected) selectionTextColor else textColor,
+                                fontSize = 14.sp
+                            ),
+                            topLeft = Offset(
+                                x = timeOffset.offset.x - (textSize.size.width / 2),
+                                y = timeOffset.offset.y - (textSize.size.height / 2)
+                            )
+                        )
+                    }
                 }
             }
         }
     )
+}
+
+private fun addHours(
+    list: MutableList<TimeOffset>,
+    is24h: Boolean,
+    canvasWidth: Float,
+    canvasHeight: Float,
+    selectedRadius: Float,
+    padding: Float,
+) {
+    val clockRadius = canvasHeight / 2
+    if (is24h) {
+        (0..23).forEach { hour ->
+            list.add(
+                TimeOffset(
+                    time = LocalTime.of(hour, 0),
+                    offset = Offset(
+                        x = canvasWidth / 2 + cos((hour-6) * 360/24 * PI /180).toFloat() * (clockRadius - selectedRadius - padding),
+                        y = canvasHeight / 2 + sin((hour-6) * 360/24 * PI /180).toFloat() * (clockRadius - selectedRadius - padding)
+                    )
+                )
+            )
+        }
+    }
+    else {
+        (0..11).forEach { hour ->
+            list.add(
+                TimeOffset(
+                    time = LocalTime.of(hour, 0),
+                    offset = Offset(
+                        x = canvasWidth / 2 + cos((hour-3) * 360/12 * PI /180).toFloat() * (clockRadius - selectedRadius - padding),
+                        y = canvasHeight / 2 + sin((hour-3) * 360/12 * PI /180).toFloat() * (clockRadius - selectedRadius - padding)
+                    )
+                )
+            )
+        }
+    }
+}
+
+private fun addMinutes(
+    list: MutableList<TimeOffset>,
+    canvasWidth: Float,
+    canvasHeight: Float,
+    selectedRadius: Float,
+    padding: Float,
+) {
+    val clockRadius = canvasHeight / 2
+    (0..59).forEach { minute ->
+        list.add(
+            TimeOffset(
+                time = LocalTime.of(0, minute),
+                offset = Offset(
+                    x = canvasWidth / 2 + cos((minute-15) * 360/60 * PI /180).toFloat() * (clockRadius - selectedRadius - padding),
+                    y = canvasHeight / 2 + sin((minute-15) * 360/60 * PI /180).toFloat() * (clockRadius - selectedRadius - padding)
+                )
+            )
+        )
+    }
 }

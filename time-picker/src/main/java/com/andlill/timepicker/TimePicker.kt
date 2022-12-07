@@ -7,8 +7,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -24,16 +26,16 @@ import java.util.*
 fun TimePickerDialog(
     state: MutableState<Boolean>,
     initialTime: LocalTime = LocalTime.now(),
-    is24h: Boolean = false,
+    is24h: Boolean = true,
     onSelectTime: (LocalTime) -> Unit
 ) {
     if (state.value) {
 
         val config = LocalConfiguration.current
-        val timeSelected = rememberSaveable { mutableStateOf(initialTime) }
-        val clockDial = rememberSaveable { mutableStateOf(true) }
-        val timePeriod = rememberSaveable { mutableStateOf(TimePeriod.AM) }
-        val timeUnit = rememberSaveable { mutableStateOf(TimeUnit.Hour) }
+        val timeSelected = remember { mutableStateOf(initialTime) }
+        val clockDial = remember { mutableStateOf(true) }
+        val timePeriod = remember { mutableStateOf(TimePeriod.AM) }
+        val timeUnit = remember { mutableStateOf(TimeUnit.Hour) }
 
         Dialog(
             onDismissRequest = { state.value = false },
@@ -56,7 +58,7 @@ fun TimePickerDialog(
                                 state.value = false
                             },
                             onPositiveClick = {
-                                timeSelected.value.let(onSelectTime)
+                                onSelectTime(timeSelected.value)
                                 state.value = false
                             }
                         )
@@ -69,7 +71,7 @@ fun TimePickerDialog(
                                 state.value = false
                             },
                             onPositiveClick = {
-                                timeSelected.value.let(onSelectTime)
+                                onSelectTime(timeSelected.value)
                                 state.value = false
                             }
                         )
@@ -152,6 +154,9 @@ internal fun TimePickerLayoutVertical(
                 onSelectTime = {
                     // TODO: convert 12h to 24h
                     timeSelected.value = it
+                },
+                onChangeTimeUnit = {
+                    timeUnit.value = it
                 }
             )
         }
