@@ -95,7 +95,7 @@ internal fun TimePickerHour(
                             text = value
                             if (value.length >= 2) {
                                 onSelectTime(time)
-                                focusManager.clearFocus()
+                                focusManager.moveFocus(FocusDirection.Next)
                             }
                         }
                     }
