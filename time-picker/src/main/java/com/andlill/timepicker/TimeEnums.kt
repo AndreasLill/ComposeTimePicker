@@ -9,3 +9,8 @@ enum class TimeUnit {
     Hour,
     Minute
 }
+
+enum class TimeInputMode {
+    ClockDial,
+    TextField,
+}

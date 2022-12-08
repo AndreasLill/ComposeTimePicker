@@ -11,13 +11,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun TimePickerActionRow(
+    onInputModeClick: () -> Unit,
     onNegativeClick: () -> Unit,
     onPositiveClick: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxWidth()) {
         IconButton(
             modifier = Modifier.align(Alignment.CenterStart),
-            onClick = { /*TODO*/ }
+            onClick = onInputModeClick
         ) {
             Icon(
                 imageVector = Icons.Outlined.Edit,

@@ -7,20 +7,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalTime
-import java.util.*
 
 @Composable
 fun TimePickerDialog(
@@ -33,7 +31,7 @@ fun TimePickerDialog(
 
         val config = LocalConfiguration.current
         val timeSelected = remember { mutableStateOf(initialTime) }
-        val clockDial = remember { mutableStateOf(true) }
+        val timeInputMode = remember { mutableStateOf(TimeInputMode.ClockDial) }
         val timePeriod = remember { mutableStateOf(TimePeriod.AM) }
         val timeUnit = remember { mutableStateOf(TimeUnit.Hour) }
 
@@ -50,7 +48,7 @@ fun TimePickerDialog(
                     if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
                         TimePickerLayoutVertical(
                             timeSelected = timeSelected,
-                            clockDial = clockDial,
+                            timeInputMode = timeInputMode,
                             timeUnit = timeUnit,
                             timePeriod = timePeriod,
                             is24h = is24h,
@@ -85,25 +83,27 @@ fun TimePickerDialog(
 @Composable
 internal fun TimePickerLayoutVertical(
     timeSelected: MutableState<LocalTime>,
-    clockDial: MutableState<Boolean>,
+    timeInputMode: MutableState<TimeInputMode>,
     timeUnit: MutableState<TimeUnit>,
     timePeriod: MutableState<TimePeriod>,
     is24h: Boolean,
     onNegativeClick: () -> Unit,
     onPositiveClick: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TimePickerTextField(
+            TimePickerHour(
                 modifier = Modifier
                     .width(96.dp)
                     .height(80.dp),
-                value = timeSelected.value.toString("HH", Locale.getDefault()),
-                readOnly = clockDial.value,
+                focusRequester = focusRequester,
+                timeSelected = timeSelected.value,
+                readOnly = timeInputMode.value == TimeInputMode.ClockDial,
                 selected = timeUnit.value == TimeUnit.Hour,
-                imeAction = ImeAction.Next,
-                onValueChange = {
-
+                onSelectTime = {
+                    timeSelected.value = it
                 },
                 onSelect = {
                     timeUnit.value = TimeUnit.Hour
@@ -116,16 +116,15 @@ internal fun TimePickerLayoutVertical(
                 fontSize = 48.sp,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            TimePickerTextField(
+            TimePickerMinute(
                 modifier = Modifier
                     .width(96.dp)
                     .height(80.dp),
-                value = timeSelected.value.toString("mm", Locale.getDefault()),
-                readOnly = clockDial.value,
+                timeSelected = timeSelected.value,
+                readOnly = timeInputMode.value == TimeInputMode.ClockDial,
                 selected = timeUnit.value == TimeUnit.Minute,
-                imeAction = ImeAction.Done,
-                onValueChange = {
-
+                onSelectTime = {
+                    timeSelected.value = it
                 },
                 onSelect = {
                     timeUnit.value = TimeUnit.Minute
@@ -145,7 +144,7 @@ internal fun TimePickerLayoutVertical(
                 )
             }
         }
-        if (clockDial.value) {
+        if (timeInputMode.value == TimeInputMode.ClockDial) {
             Spacer(modifier = Modifier.height(16.dp))
             TimePickerClock(
                 timeSelected = timeSelected.value,
@@ -162,6 +161,18 @@ internal fun TimePickerLayoutVertical(
         }
         Spacer(modifier = Modifier.height(16.dp))
         TimePickerActionRow(
+            onInputModeClick = {
+                if (timeInputMode.value == TimeInputMode.ClockDial) {
+                    timeInputMode.value = TimeInputMode.TextField
+                    scope.launch {
+                        delay(50)
+                        focusRequester.requestFocus()
+                    }
+                }
+                else {
+                    timeInputMode.value = TimeInputMode.ClockDial
+                }
+            },
             onNegativeClick = onNegativeClick,
             onPositiveClick = onPositiveClick
         )
