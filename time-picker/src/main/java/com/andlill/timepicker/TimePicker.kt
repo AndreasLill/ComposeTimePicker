@@ -147,7 +147,7 @@ internal fun TimePickerLayoutVertical(
         }
         if (clockDial.value) {
             Spacer(modifier = Modifier.height(16.dp))
-            TimePickerClockDial(
+            TimePickerClock(
                 timeSelected = timeSelected.value,
                 timeUnit = timeUnit.value,
                 is24h = is24h,
