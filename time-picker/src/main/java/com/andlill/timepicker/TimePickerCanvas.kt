@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.dp
@@ -130,50 +133,90 @@ internal fun TimePickerCanvas(
                 }
             }
 
+            // Middle canvas circle.
             drawCircle(
                 color = selectionColor,
-                radius = selectedRadius,
+                radius = 4.dp.toPx(),
+                center = Offset(
+                    x = size.width / 2,
+                    y = size.height / 2
+                )
+            )
+            // Line from middle circle to selection circle.
+            drawLine(
+                color = selectionColor,
+                strokeWidth = 2.dp.toPx(),
+                start = Offset(
+                    x = size.width / 2,
+                    y = size.height / 2
+                ),
+                end = Offset(
+                    x = selected.offset.x,
+                    y = selected.offset.y
+                )
+            )
+
+            // Background circle to show behind blended circle to show as text color.
+            drawCircle(
+                color = selectionTextColor,
+                radius = selectedRadius * 0.99f,
                 center = selected.offset
             )
 
-            if (timeUnit == TimeUnit.Hour) {
-                hours.forEachIndexed { index, timeOffset ->
-                    val str = "$index"
-                    val textSize = textMeasurer.measure(text = AnnotatedString(str))
-                    if ((is24h && index % 2 == 0) || !is24h) {
-                        drawText(
-                            textMeasurer = textMeasurer,
-                            text = str,
-                            style = TextStyle(
-                                color = if (timeOffset == selected) selectionTextColor else textColor,
-                                fontSize = 14.sp
-                            ),
-                            topLeft = Offset(
-                                x = timeOffset.offset.x - (textSize.size.width / 2),
-                                y = timeOffset.offset.y - (textSize.size.height / 2)
-                            )
-                        )
+            drawIntoCanvas {
+                with(drawContext.canvas.nativeCanvas) {
+                    // Draw with layers to enable the blend mode.
+                    val checkPoint = saveLayer(null, null)
+
+                    if (timeUnit == TimeUnit.Hour) {
+                        hours.forEachIndexed { index, timeOffset ->
+                            val str = "$index"
+                            val textSize = textMeasurer.measure(text = AnnotatedString(str))
+                            if ((is24h && index % 2 == 0) || !is24h) {
+                                drawText(
+                                    textMeasurer = textMeasurer,
+                                    text = str,
+                                    style = TextStyle(
+                                        color = textColor,
+                                        fontSize = 14.sp
+                                    ),
+                                    topLeft = Offset(
+                                        x = timeOffset.offset.x - (textSize.size.width / 2),
+                                        y = timeOffset.offset.y - (textSize.size.height / 2)
+                                    )
+                                )
+                            }
+                        }
                     }
-                }
-            }
-            else {
-                minutes.forEachIndexed { index, timeOffset ->
-                    val str = "$index"
-                    val textSize = textMeasurer.measure(text = AnnotatedString(str))
-                    if (index % 5 == 0) {
-                        drawText(
-                            textMeasurer = textMeasurer,
-                            text = str,
-                            style = TextStyle(
-                                color = if (timeOffset == selected) selectionTextColor else textColor,
-                                fontSize = 14.sp
-                            ),
-                            topLeft = Offset(
-                                x = timeOffset.offset.x - (textSize.size.width / 2),
-                                y = timeOffset.offset.y - (textSize.size.height / 2)
-                            )
-                        )
+                    else {
+                        minutes.forEachIndexed { index, timeOffset ->
+                            val str = "$index"
+                            val textSize = textMeasurer.measure(text = AnnotatedString(str))
+                            if (index % 5 == 0) {
+                                drawText(
+                                    textMeasurer = textMeasurer,
+                                    text = str,
+                                    style = TextStyle(
+                                        color = textColor,
+                                        fontSize = 14.sp
+                                    ),
+                                    topLeft = Offset(
+                                        x = timeOffset.offset.x - (textSize.size.width / 2),
+                                        y = timeOffset.offset.y - (textSize.size.height / 2)
+                                    )
+                                )
+                            }
+                        }
                     }
+                    // Selection circle using BlendMode.SrcOut to "carve out" the text.
+                    drawCircle(
+                        color = selectionColor,
+                        radius = selectedRadius,
+                        center = selected.offset,
+                        blendMode = BlendMode.SrcOut
+                    )
+
+                    restoreToCount(checkPoint)
                 }
             }
         }
