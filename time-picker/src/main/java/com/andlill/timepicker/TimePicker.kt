@@ -32,7 +32,7 @@ fun TimePickerDialog(
         val config = LocalConfiguration.current
         val timeSelected = remember { mutableStateOf(initialTime) }
         val timeInputMode = remember { mutableStateOf(TimeInputMode.ClockDial) }
-        val timePeriod = remember { mutableStateOf(TimePeriod.AM) }
+        val timePeriod = remember { mutableStateOf(if (initialTime.hour < 12) TimePeriod.AM else TimePeriod.PM) }
         val timeUnit = remember { mutableStateOf(TimeUnit.Hour) }
 
         Dialog(
@@ -100,6 +100,7 @@ internal fun TimePickerLayoutVertical(
                     .height(80.dp),
                 focusRequester = focusRequester,
                 timeSelected = timeSelected.value,
+                is24h = is24h,
                 readOnly = timeInputMode.value == TimeInputMode.ClockDial,
                 selected = timeUnit.value == TimeUnit.Hour,
                 onSelectTime = {
@@ -139,7 +140,20 @@ internal fun TimePickerLayoutVertical(
                     vertical = true,
                     timePeriod = timePeriod.value,
                     onSelect = {
+                        if (timePeriod.value == it)
+                            return@TimePickerPeriodSelector
+
                         timePeriod.value = it
+                        if (it == TimePeriod.AM) {
+                            // From PM to AM
+                            val hour = timeSelected.value.hour - 12
+                            timeSelected.value = timeSelected.value.withHour(hour)
+                        }
+                        else {
+                            // From AM to PM
+                            val hour = timeSelected.value.hour + 12
+                            timeSelected.value = timeSelected.value.withHour(hour)
+                        }
                     }
                 )
             }
@@ -149,9 +163,9 @@ internal fun TimePickerLayoutVertical(
             TimePickerClock(
                 timeSelected = timeSelected.value,
                 timeUnit = timeUnit.value,
+                timePeriod = timePeriod.value,
                 is24h = is24h,
                 onSelectTime = {
-                    // TODO: convert 12h to 24h
                     timeSelected.value = it
                 },
                 onChangeTimeUnit = {

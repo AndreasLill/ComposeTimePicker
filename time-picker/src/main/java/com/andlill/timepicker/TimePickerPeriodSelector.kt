@@ -40,7 +40,7 @@ internal fun TimePickerPeriodSelector(
                             .fillMaxWidth()
                             .background(
                                 if (timePeriod == TimePeriod.AM)
-                                    MaterialTheme.colorScheme.tertiaryContainer
+                                    MaterialTheme.colorScheme.primaryContainer
                                 else
                                     Color.Transparent
                             )
@@ -60,7 +60,7 @@ internal fun TimePickerPeriodSelector(
                             .fillMaxWidth()
                             .background(
                                 if (timePeriod == TimePeriod.PM)
-                                    MaterialTheme.colorScheme.tertiaryContainer
+                                    MaterialTheme.colorScheme.primaryContainer
                                 else
                                     Color.Transparent
                             )

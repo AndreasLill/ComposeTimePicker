@@ -19,6 +19,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -35,6 +36,7 @@ internal fun TimePickerHour(
     modifier: Modifier,
     focusRequester: FocusRequester,
     timeSelected: LocalTime,
+    is24h: Boolean,
     readOnly: Boolean,
     selected: Boolean,
     onSelectTime: (LocalTime) -> Unit,
@@ -105,6 +107,7 @@ internal fun TimePickerHour(
                     fontSize = 48.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
                 decorationBox = { innerTextField ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -113,7 +116,7 @@ internal fun TimePickerHour(
                         if (text.isBlank() && !isFocused) {
                             Text(
                                 textAlign = TextAlign.Center,
-                                text = timeSelected.toString("HH", Locale.getDefault()),
+                                text = timeSelected.toString(if (is24h) "HH" else "hh"),
                                 fontSize = 48.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )

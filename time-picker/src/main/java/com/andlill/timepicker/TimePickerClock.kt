@@ -18,6 +18,7 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalTime
+import java.util.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.pow
@@ -28,6 +29,7 @@ import kotlin.math.sin
 internal fun TimePickerClock(
     timeSelected: LocalTime,
     timeUnit: TimeUnit,
+    timePeriod: TimePeriod,
     is24h: Boolean,
     onSelectTime: (LocalTime) -> Unit,
     onChangeTimeUnit: (TimeUnit) -> Unit
@@ -59,7 +61,14 @@ internal fun TimePickerClock(
                                     )
                                 }
                                 .first()
-                            onSelectTime(timeSelected.withHour(selected.time.hour))
+                            if (is24h) {
+                                onSelectTime(timeSelected.withHour(selected.time.hour))
+                            }
+                            else {
+                                // Convert hour from 12h to 24h if PM.
+                                val hour = getHour12to24(selected.time.hour, timePeriod)
+                                onSelectTime(timeSelected.withHour(hour))
+                            }
                         } else {
                             selected = minutes
                                 .sortedBy { minute ->
@@ -88,7 +97,14 @@ internal fun TimePickerClock(
                                 (press.x - hour.offset.x).pow(2) + (press.y - hour.offset.y).pow(2)
                             }
                             .first()
-                        onSelectTime(timeSelected.withHour(selected.time.hour))
+                        if (is24h) {
+                            onSelectTime(timeSelected.withHour(selected.time.hour))
+                        }
+                        else {
+                            // Convert hour from 12h to 24h if PM.
+                            val hour = getHour12to24(selected.time.hour, timePeriod)
+                            onSelectTime(timeSelected.withHour(hour))
+                        }
                         // TODO: Add animations.
                         onChangeTimeUnit(TimeUnit.Minute)
                     } else {
@@ -128,8 +144,17 @@ internal fun TimePickerClock(
             }
             if (selected == TimeOffset.Unspecified) {
                 if (timeUnit == TimeUnit.Hour) {
-                    hours.find { it.time.hour == timeSelected.hour }?.let {
-                        selected = it
+                    if (is24h) {
+                        hours.find { it.time.hour == timeSelected.hour }?.let {
+                            selected = it
+                        }
+                    }
+                    else {
+                        // Convert hour to 12h.
+                        val hour = timeSelected.toString("h").toInt()
+                        hours.find { it.time.hour == hour }?.let {
+                            selected = it
+                        }
                     }
                 }
                 else {
@@ -175,13 +200,13 @@ internal fun TimePickerClock(
                     val checkPoint = saveLayer(null, null)
 
                     if (timeUnit == TimeUnit.Hour) {
-                        hours.forEachIndexed { index, timeOffset ->
-                            val str = "$index"
-                            val textSize = textMeasurer.measure(text = AnnotatedString(str))
-                            if ((is24h && index % 2 == 0) || !is24h) {
+                        hours.forEach { timeOffset ->
+                            val hour = timeOffset.time.hour
+                            val textSize = textMeasurer.measure(text = AnnotatedString(hour.toString()))
+                            if ((is24h && hour % 2 == 0) || !is24h) {
                                 drawText(
                                     textMeasurer = textMeasurer,
-                                    text = str,
+                                    text = hour.toString(),
                                     style = TextStyle(
                                         color = textColor,
                                         fontSize = 14.sp
@@ -195,13 +220,13 @@ internal fun TimePickerClock(
                         }
                     }
                     else {
-                        minutes.forEachIndexed { index, timeOffset ->
-                            val str = "$index"
-                            val textSize = textMeasurer.measure(text = AnnotatedString(str))
-                            if (index % 5 == 0) {
+                        minutes.forEach { timeOffset ->
+                            val minute = timeOffset.time.minute
+                            val textSize = textMeasurer.measure(text = AnnotatedString(minute.toString()))
+                            if (minute % 5 == 0) {
                                 drawText(
                                     textMeasurer = textMeasurer,
-                                    text = str,
+                                    text = minute.toString(),
                                     style = TextStyle(
                                         color = textColor,
                                         fontSize = 14.sp
@@ -252,7 +277,7 @@ private fun addHours(
         }
     }
     else {
-        (0..11).forEach { hour ->
+        (1..12).forEach { hour ->
             list.add(
                 TimeOffset(
                     time = LocalTime.of(hour, 0),
@@ -284,5 +309,20 @@ private fun addMinutes(
                 )
             )
         )
+    }
+}
+
+private fun getHour12to24(hour: Int, timePeriod: TimePeriod): Int {
+    return if (timePeriod == TimePeriod.AM) {
+        when (hour) {
+            12 -> 0
+            else -> hour
+        }
+    }
+    else {
+        when (hour) {
+            12 -> 12
+            else -> hour + 12
+        }
     }
 }

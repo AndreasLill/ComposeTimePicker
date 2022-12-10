@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -100,6 +101,7 @@ internal fun TimePickerMinute(
                     fontSize = 48.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
                 decorationBox = { innerTextField ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -108,7 +110,7 @@ internal fun TimePickerMinute(
                         if (text.isBlank() && !isFocused) {
                             Text(
                                 textAlign = TextAlign.Center,
-                                text = timeSelected.toString("mm", Locale.getDefault()),
+                                text = timeSelected.toString("mm"),
                                 fontSize = 48.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
