@@ -74,7 +74,42 @@ internal fun TimePickerPeriodSelector(
             }
             else {
                 Row(modifier = Modifier.fillMaxSize()) {
-
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(
+                                if (timePeriod == TimePeriod.AM)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    Color.Transparent
+                            )
+                            .clickable {
+                                onSelect(TimePeriod.AM)
+                            },
+                        contentAlignment = Alignment.Center) {
+                        TimePickerPeriodSelectorText("AM")
+                    }
+                    Divider(
+                        modifier = Modifier.fillMaxHeight().width(1.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(
+                                if (timePeriod == TimePeriod.PM)
+                                    MaterialTheme.colorScheme.primaryContainer
+                                else
+                                    Color.Transparent
+                            )
+                            .clickable {
+                                onSelect(TimePeriod.PM)
+                            },
+                        contentAlignment = Alignment.Center) {
+                        TimePickerPeriodSelectorText("PM")
+                    }
                 }
             }
         }

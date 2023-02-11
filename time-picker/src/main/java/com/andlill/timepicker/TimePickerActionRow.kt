@@ -2,7 +2,8 @@ package com.andlill.timepicker
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -11,6 +12,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun TimePickerActionRow(
+    timeInputMode: TimeInputMode,
     onInputModeClick: () -> Unit,
     onNegativeClick: () -> Unit,
     onPositiveClick: () -> Unit
@@ -21,7 +23,7 @@ internal fun TimePickerActionRow(
             onClick = onInputModeClick
         ) {
             Icon(
-                imageVector = Icons.Outlined.Edit,
+                imageVector = if (timeInputMode == TimeInputMode.ClockDial) Icons.Outlined.Keyboard else Icons.Outlined.Schedule,
                 contentDescription = null
             )
         }
