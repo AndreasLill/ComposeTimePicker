@@ -84,7 +84,7 @@ internal fun TimePickerHour(
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = {
-                        validateTime(text, timeSelected)?.let(onSelectTime)
+                        validateTime(text, timeSelected, is24h)?.let(onSelectTime)
                         focusManager.moveFocus(FocusDirection.Next)
                     },
                 ),
@@ -93,7 +93,7 @@ internal fun TimePickerHour(
                         text = value
                     }
                     else {
-                        validateTime(value, timeSelected)?.let { time ->
+                        validateTime(value, timeSelected, is24h)?.let { time ->
                             text = value
                             if (value.length >= 2) {
                                 onSelectTime(time)
@@ -128,9 +128,14 @@ internal fun TimePickerHour(
     )
 }
 
-private fun validateTime(hour: String, time: LocalTime): LocalTime? {
+private fun validateTime(hour: String, time: LocalTime, is24h: Boolean): LocalTime? {
     return try {
-        time.withHour(hour.toInt())
+        if (!is24h && hour.toInt() > 12)
+            null
+        else if (!is24h && hour == "00")
+            null
+        else
+            time.withHour(hour.toInt())
     }
     catch(ex: Exception) {
         null

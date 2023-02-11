@@ -117,7 +117,10 @@ internal fun TimePickerLayoutVertical(
                 readOnly = timeInputMode.value == TimeInputMode.ClockDial,
                 selected = timeUnit.value == TimeUnit.Hour,
                 onSelectTime = {
-                    timeSelected.value = it
+                    if (!is24h && timePeriod.value == TimePeriod.PM)
+                        timeSelected.value = it.withHour(it.hour + 12)
+                    else
+                        timeSelected.value = it
                 },
                 onSelect = {
                     timeUnit.value = TimeUnit.Hour
