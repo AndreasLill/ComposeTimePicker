@@ -45,7 +45,7 @@ fun TimePickerDialog(
             onDismissRequest = { state.value = false },
             content = {
                 Box(modifier = Modifier
-                    .widthIn(328.dp, if (timeInputMode.value == TimeInputMode.ClockDial) 656.dp else 328.dp)
+                    .widthIn(400.dp, if (timeInputMode.value == TimeInputMode.ClockDial) 650.dp else 400.dp)
                     .padding(start = 32.dp, end = 32.dp)) {
                     Surface(
                         modifier = Modifier
