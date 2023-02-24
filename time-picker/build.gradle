@@ -35,6 +35,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.3'
     }
+    buildToolsVersion '31.0.0'
     kotlin.sourceSets.all {
         languageSettings.optIn("kotlin.RequiresOptIn")
     }
