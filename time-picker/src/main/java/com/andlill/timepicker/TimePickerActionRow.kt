@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun TimePickerActionRow(
+    colors: TimePickerColors,
+    strings: TimePickerStrings,
     timeInputMode: TimeInputMode,
     onInputModeClick: () -> Unit,
     onNegativeClick: () -> Unit,
@@ -29,18 +31,18 @@ internal fun TimePickerActionRow(
         }
         Row(modifier = Modifier.align(Alignment.CenterEnd)) {
             TextButton(
-                colors = ButtonDefaults.textButtonColors(),
+                colors = colors.negativeButton,
                 onClick = onNegativeClick,
                 content = {
-                    Text("Cancel")
+                    Text(strings.negativeButtonText)
                 }
             )
             Spacer(modifier = Modifier.width(8.dp))
             TextButton(
-                colors = ButtonDefaults.textButtonColors(),
+                colors = colors.positiveButton,
                 onClick = onPositiveClick,
                 content = {
-                    Text("OK")
+                    Text(strings.positiveButtonText)
                 }
             )
         }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -27,6 +26,7 @@ import kotlin.math.sin
 @OptIn(ExperimentalTextApi::class)
 @Composable
 internal fun TimePickerClock(
+    colors: TimePickerColors,
     timeSelected: LocalTime,
     timeUnit: TimeUnit,
     timePeriod: TimePeriod,
@@ -34,9 +34,6 @@ internal fun TimePickerClock(
     onSelectTime: (LocalTime) -> Unit,
     onChangeTimeUnit: (TimeUnit) -> Unit
 ) {
-    val selectionColor = MaterialTheme.colorScheme.primary
-    val selectionTextColor = MaterialTheme.colorScheme.onPrimary
-    val textColor = MaterialTheme.colorScheme.onSurface
     val hours = remember { mutableListOf<TimeOffset>() }
     val minutes = remember { mutableListOf<TimeOffset>() }
     var selected by remember(timeUnit) { mutableStateOf(TimeOffset.Unspecified) }
@@ -46,7 +43,7 @@ internal fun TimePickerClock(
         modifier = Modifier
             .size(256.dp)
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = colors.clockDialBackground,
                 shape = RoundedCornerShape(256.dp)
             )
             .pointerInput(timeUnit) {
@@ -166,7 +163,7 @@ internal fun TimePickerClock(
 
             // Middle canvas circle.
             drawCircle(
-                color = selectionColor,
+                color = colors.clockDialSelection,
                 radius = 4.dp.toPx(),
                 center = Offset(
                     x = size.width / 2,
@@ -175,7 +172,7 @@ internal fun TimePickerClock(
             )
             // Line from middle circle to selection circle.
             drawLine(
-                color = selectionColor,
+                color = colors.clockDialSelection,
                 strokeWidth = 2.dp.toPx(),
                 start = Offset(
                     x = size.width / 2,
@@ -189,7 +186,7 @@ internal fun TimePickerClock(
 
             // Background circle to show behind blended circle to show as text color.
             drawCircle(
-                color = selectionTextColor,
+                color = colors.clockDialSelectionText,
                 radius = selectedRadius * 0.99f,
                 center = selected.offset
             )
@@ -208,7 +205,7 @@ internal fun TimePickerClock(
                                     textMeasurer = textMeasurer,
                                     text = hour.toString(),
                                     style = TextStyle(
-                                        color = textColor,
+                                        color = colors.clockDialText,
                                         fontSize = 14.sp
                                     ),
                                     topLeft = Offset(
@@ -228,7 +225,7 @@ internal fun TimePickerClock(
                                     textMeasurer = textMeasurer,
                                     text = minute.toString(),
                                     style = TextStyle(
-                                        color = textColor,
+                                        color = colors.clockDialText,
                                         fontSize = 14.sp
                                     ),
                                     topLeft = Offset(
@@ -241,7 +238,7 @@ internal fun TimePickerClock(
                     }
                     // Selection circle using BlendMode.SrcOut to "carve out" the text.
                     drawCircle(
-                        color = selectionColor,
+                        color = colors.clockDialSelection,
                         radius = selectedRadius,
                         center = selected.offset,
                         blendMode = BlendMode.SrcOut

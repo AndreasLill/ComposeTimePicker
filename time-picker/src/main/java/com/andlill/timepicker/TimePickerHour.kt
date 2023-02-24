@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -18,7 +17,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
@@ -34,6 +32,7 @@ import java.util.*
 @Composable
 internal fun TimePickerHour(
     modifier: Modifier,
+    colors: TimePickerColors,
     focusRequester: FocusRequester,
     timeSelected: LocalTime,
     is24h: Boolean,
@@ -55,10 +54,10 @@ internal fun TimePickerHour(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        color = if (selected) colors.timeDisplayBackgroundSelected else colors.timeDisplayBackground,
         border = BorderStroke(
             width = 1.5.dp,
-            color = if (isFocused) MaterialTheme.colorScheme.primary else Color.Transparent
+            color = if (isFocused) colors.timeDisplayBorderSelected else colors.timeDisplayBorder
         ),
         onClick = {
             onSelect()
@@ -105,9 +104,9 @@ internal fun TimePickerHour(
                 textStyle = TextStyle(
                     textAlign = TextAlign.Center,
                     fontSize = 48.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = colors.timeDisplayText
                 ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(colors.timeDisplayText),
                 decorationBox = { innerTextField ->
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -118,7 +117,7 @@ internal fun TimePickerHour(
                                 textAlign = TextAlign.Center,
                                 text = timeSelected.toString(if (is24h) "HH" else "hh"),
                                 fontSize = 48.sp,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = colors.timeDisplayText
                             )
                         }
                     }
