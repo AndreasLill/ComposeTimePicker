@@ -21,6 +21,8 @@ dependencies {
 }
 ```
 
+[![](https://jitpack.io/v/AndreasLill/ComposeTimePicker.svg)](https://jitpack.io/#AndreasLill/ComposeTimePicker)
+
 # Usage
 
 Using the time picker is easy and can be further customized to suit your needs.
